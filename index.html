@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modern Counter</title>
+  <style>
+    :root {
+      --primary:      #6c63ff;
+      --secondary:    #ff6584;
+      --bg-start:     #0f0c29;
+      --bg-mid:       #302b63;
+      --bg-end:       #24243e;
+      --glass-bg:     rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --text:         #ffffff;
+      --text-muted:   rgba(255, 255, 255, 0.55);
+      --radius:       20px;
+      --transition:   0.2s ease;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--bg-start), var(--bg-mid), var(--bg-end));
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: var(--text);
+      overflow-y: auto;
+      padding: 24px 0;
+    }
+
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    body::before { width: 420px; height: 420px; background: var(--primary);   top: -120px;  left: -120px; }
+    body::after  { width: 320px; height: 320px; background: var(--secondary); bottom: -80px; right: -80px; }
+
+    .card {
+      position: relative;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: var(--radius);
+      padding: 32px 48px 40px;
+      text-align: center;
+      width: min(400px, 92vw);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+    }
+
+    /* ── Tab bar ── */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+    .tab {
+      flex: 1;
+      padding: 8px 0;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+    }
+    .tab.active            { background: rgba(108,99,255,0.35); color: #fff; }
+    .tab:hover:not(.active){ background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+
+    .tab-panel         { display: none; }
+    .tab-panel.active  { display: block; }
+
+    /* ── Shared label ── */
+    .card__label {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* ── Counter display ── */
+    .counter-display {
+      font-size: clamp(5rem, 18vw, 7rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #fff 30%, var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      min-height: 1.1em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform var(--transition);
+      user-select: none;
+    }
+    .counter-display.bump-up   { animation: bumpUp   0.22s ease; }
+    .counter-display.bump-down { animation: bumpDown 0.22s ease; }
+    .counter-display.finished  { animation: pulse    0.55s ease 3; }
+
+    @keyframes bumpUp   { 0%{transform:translateY(0) scale(1)} 40%{transform:translateY(-10px) scale(1.06)} 100%{transform:translateY(0) scale(1)} }
+    @keyframes bumpDown { 0%{transform:translateY(0) scale(1)} 40%{transform:translateY(8px) scale(0.95)}   100%{transform:translateY(0) scale(1)} }
+    @keyframes pulse    { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+
+    /* ── Ring ── */
+    .ring-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
+    .ring { width: 200px; height: 200px; position: relative; display: flex; align-items: center; justify-content: center; }
+    .ring svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+    .ring__track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 6; }
+    .ring__fill  {
+      fill: none;
+      stroke: url(#ringGrad);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 565;
+      stroke-dashoffset: 565;
+      transition: stroke-dashoffset 0.35s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── Buttons ── */
+    .controls { display: flex; gap: 20px; justify-content: center; margin-top: 32px; }
+    .btn {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 1.6rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform var(--transition), box-shadow var(--transition);
+      outline: none;
+    }
+    .btn:active { transform: scale(0.9) !important; }
+
+    .btn--minus {
+      background: rgba(255,101,132,0.2);
+      border: 1px solid rgba(255,101,132,0.45);
+      color: #ff6584;
+      box-shadow: 0 4px 20px rgba(255,101,132,0.2);
+    }
+    .btn--minus:hover { background: rgba(255,101,132,0.32); box-shadow: 0 6px 28px rgba(255,101,132,0.4); transform: translateY(-2px); }
+
+    .btn--plus {
+      background: rgba(108,99,255,0.22);
+      border: 1px solid rgba(108,99,255,0.45);
+      color: #a89dff;
+      box-shadow: 0 4px 20px rgba(108,99,255,0.25);
+    }
+    .btn--plus:hover { background: rgba(108,99,255,0.38); box-shadow: 0 6px 28px rgba(108,99,255,0.45); transform: translateY(-2px); }
+
+    .btn--neutral {
+      width: 48px; height: 48px;
+      font-size: 1rem;
+      align-self: center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text-muted);
+      box-shadow: none;
+    }
+    .btn--neutral:hover { background: rgba(255,255,255,0.14); color: #fff; transform: rotate(90deg); }
+
+    /* ── Step selector ── */
+    .step-wrap { margin-top: 28px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .step-wrap label { font-size: 0.78rem; color: var(--text-muted); letter-spacing: 0.08em; }
+    .step-select {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.85rem;
+      padding: 5px 10px;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .step-select option { background: #302b63; }
+
+    /* ── History pills ── */
+    .history { margin-top: 20px; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; min-height: 26px; }
+    .pill {
+      font-size: 0.7rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-muted);
+      animation: fadeIn 0.2s ease;
+    }
+
+    /* ── Countdown ── */
+    .cd-input-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
+    .cd-input-wrap label { font-size: 0.78rem; color: var(--text-muted); letter-spacing: 0.08em; }
+    .cd-input {
+      width: 76px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.95rem;
+      padding: 6px 10px;
+      text-align: center;
+      outline: none;
+    }
+    .cd-input:focus { border-color: var(--primary); background: rgba(108,99,255,0.12); }
+    .cd-input::-webkit-inner-spin-button,
+    .cd-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .cd-input { -moz-appearance: textfield; }
+
+    .cd-status {
+      margin-top: 14px;
+      font-size: 0.8rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      min-height: 1.2em;
+      transition: color 0.3s;
+    }
+    .cd-status.done { color: #ff6584; }
+
+    /* ── Stopwatch ── */
+    .sw-display {
+      font-size: clamp(2.6rem, 11vw, 3.6rem);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, #fff 30%, var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      padding: 24px 0 6px;
+      user-select: none;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .laps-list {
+      margin-top: 18px;
+      max-height: 148px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.15) transparent;
+    }
+    .lap-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.76rem;
+      padding: 5px 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-muted);
+      animation: fadeIn 0.2s ease;
+      font-variant-numeric: tabular-nums;
+    }
+    .lap-num   { color: var(--primary); font-weight: 700; }
+    .lap-delta { font-size: 0.68rem; opacity: 0.7; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <div class="tab-bar">
+      <button class="tab active" data-tab="counter">Counter</button>
+      <button class="tab"        data-tab="countdown">Countdown</button>
+      <button class="tab"        data-tab="stopwatch">Stopwatch</button>
+    </div>
+
+    <!-- ── Counter ── -->
+    <section id="tab-counter" class="tab-panel active">
+      <p class="card__label">Counter</p>
+
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg viewBox="0 0 200 200" width="200" height="200">
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stop-color="#6c63ff" />
+                <stop offset="100%" stop-color="#ff6584" />
+              </linearGradient>
+            </defs>
+            <circle class="ring__track" cx="100" cy="100" r="90" />
+            <circle class="ring__fill"  cx="100" cy="100" r="90" id="ringFill" />
+          </svg>
+          <span class="counter-display" id="display">0</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn btn--minus"   id="btnDec"   title="Decrease">−</button>
+        <button class="btn btn--neutral" id="btnReset" title="Reset">↺</button>
+        <button class="btn btn--plus"    id="btnInc"   title="Increase">+</button>
+      </div>
+
+      <div class="step-wrap">
+        <label for="stepSelect">STEP</label>
+        <select class="step-select" id="stepSelect">
+          <option value="1">1</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+
+      <div class="history" id="history"></div>
+    </section>
+
+    <!-- ── Countdown ── -->
+    <section id="tab-countdown" class="tab-panel">
+      <div class="cd-input-wrap">
+        <label for="cdStartInput">FROM</label>
+        <input class="cd-input" type="number" id="cdStartInput" min="1" max="9999" value="60" />
+        <label>SEC</label>
+      </div>
+
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg viewBox="0 0 200 200" width="200" height="200">
+            <defs>
+              <linearGradient id="cdRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stop-color="#6c63ff" />
+                <stop offset="100%" stop-color="#ff6584" />
+              </linearGradient>
+            </defs>
+            <circle class="ring__track" cx="100" cy="100" r="90" />
+            <circle class="ring__fill"  cx="100" cy="100" r="90" id="cdRingFill" />
+          </svg>
+          <span class="counter-display" id="cdDisplay">60</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn btn--neutral" id="cdBtnReset" title="Reset">↺</button>
+        <button class="btn btn--plus"    id="cdBtnStart" title="Start" style="font-size:1.3rem;">▶</button>
+      </div>
+
+      <p class="cd-status" id="cdStatus"></p>
+    </section>
+
+    <!-- ── Stopwatch ── -->
+    <section id="tab-stopwatch" class="tab-panel">
+      <div class="sw-display" id="swDisplay">00:00.00</div>
+
+      <div class="controls" style="margin-top:8px;">
+        <button class="btn btn--minus"   id="swBtnLap"   title="Lap"   style="font-size:0.85rem;letter-spacing:0.05em;">LAP</button>
+        <button class="btn btn--neutral" id="swBtnReset" title="Reset">↺</button>
+        <button class="btn btn--plus"    id="swBtnStart" title="Start" style="font-size:1.3rem;">▶</button>
+      </div>
+
+      <div class="laps-list" id="swLaps"></div>
+    </section>
+
+  </div>
+
+  <script>
+    // ── Tabs ──────────────────────────────────────────────────────
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    const CIRC = 2 * Math.PI * 90; // ≈ 565.5
+
+    // ── Counter ───────────────────────────────────────────────────
+    const MAX = 100;
+    let count = 0;
+
+    const display   = document.getElementById('display');
+    const ringFill  = document.getElementById('ringFill');
+    const historyEl = document.getElementById('history');
+    const stepSel   = document.getElementById('stepSelect');
+
+    function updateRing(val) {
+      const pct = Math.min(Math.abs(val) / MAX, 1);
+      ringFill.style.strokeDasharray  = CIRC;
+      ringFill.style.strokeDashoffset = CIRC * (1 - pct);
+      ringFill.style.stroke = val < 0 ? '#ff6584' : 'url(#ringGrad)';
+    }
+
+    function addPill(val) {
+      const pill = document.createElement('span');
+      pill.className = 'pill';
+      pill.textContent = (val > 0 ? '+' : '') + val;
+      historyEl.prepend(pill);
+      while (historyEl.children.length > 6) historyEl.lastChild.remove();
+    }
+
+    function renderCounter(dir) {
+      display.textContent = count;
+      updateRing(count);
+      display.classList.remove('bump-up', 'bump-down');
+      void display.offsetWidth;
+      if (dir === 'up')   display.classList.add('bump-up');
+      if (dir === 'down') display.classList.add('bump-down');
+    }
+
+    function step() { return parseInt(stepSel.value, 10); }
+
+    document.getElementById('btnInc').addEventListener('click', () => { const s = step(); count += s; addPill(+s); renderCounter('up'); });
+    document.getElementById('btnDec').addEventListener('click', () => { const s = step(); count -= s; addPill(-s); renderCounter('down'); });
+    document.getElementById('btnReset').addEventListener('click', () => { count = 0; historyEl.innerHTML = ''; renderCounter(null); });
+
+    document.addEventListener('keydown', e => {
+      if (document.querySelector('.tab-panel.active').id !== 'tab-counter') return;
+      if (e.key === 'ArrowUp'   || e.key === '+') document.getElementById('btnInc').click();
+      if (e.key === 'ArrowDown' || e.key === '-') document.getElementById('btnDec').click();
+      if (e.key === 'r' || e.key === 'R')          document.getElementById('btnReset').click();
+    });
+
+    renderCounter(null);
+
+    // ── Countdown ─────────────────────────────────────────────────
+    const cdDisplay    = document.getElementById('cdDisplay');
+    const cdRingFill   = document.getElementById('cdRingFill');
+    const cdStatus     = document.getElementById('cdStatus');
+    const cdStartInput = document.getElementById('cdStartInput');
+    const cdBtnStart   = document.getElementById('cdBtnStart');
+    const cdBtnReset   = document.getElementById('cdBtnReset');
+
+    let cdTimer     = null;
+    let cdRunning   = false;
+    let cdStartSec  = 60;
+    let cdRemMs     = 60000;
+    let cdEndTime   = null;
+
+    function cdRender(ms) {
+      const secs = Math.ceil(ms / 1000);
+      cdDisplay.textContent = secs;
+      const pct = cdStartSec > 0 ? ms / (cdStartSec * 1000) : 0;
+      cdRingFill.style.strokeDasharray  = CIRC;
+      cdRingFill.style.strokeDashoffset = CIRC * (1 - pct);
+      cdRingFill.style.stroke = pct < 0.25 ? '#ff6584' : 'url(#cdRingGrad)';
+    }
+
+    function cdTick() {
+      const rem = Math.max(0, cdEndTime - Date.now());
+      cdRender(rem);
+      if (rem <= 0) {
+        clearInterval(cdTimer); cdTimer = null;
+        cdRunning = false; cdRemMs = 0;
+        cdBtnStart.textContent = '▶';
+        cdStatus.textContent = 'FINISHED!';
+        cdStatus.classList.add('done');
+        cdDisplay.classList.remove('finished');
+        void cdDisplay.offsetWidth;
+        cdDisplay.classList.add('finished');
+      }
+    }
+
+    cdBtnStart.addEventListener('click', () => {
+      if (cdRunning) {
+        clearInterval(cdTimer); cdTimer = null;
+        cdRemMs = Math.max(0, cdEndTime - Date.now());
+        cdRunning = false;
+        cdBtnStart.textContent = '▶';
+        cdStatus.textContent = 'PAUSED';
+        cdStatus.classList.remove('done');
+      } else {
+        if (cdRemMs <= 0) return;
+        cdStatus.textContent = '';
+        cdStatus.classList.remove('done');
+        cdEndTime = Date.now() + cdRemMs;
+        cdTimer   = setInterval(cdTick, 50);
+        cdRunning = true;
+        cdBtnStart.textContent = '⏸';
+      }
+    });
+
+    cdBtnReset.addEventListener('click', () => {
+      clearInterval(cdTimer); cdTimer = null;
+      cdRunning = false;
+      cdBtnStart.textContent = '▶';
+      cdStartSec = Math.max(1, parseInt(cdStartInput.value, 10) || 60);
+      cdRemMs    = cdStartSec * 1000;
+      cdStatus.textContent = '';
+      cdStatus.classList.remove('done');
+      cdRender(cdRemMs);
+    });
+
+    cdStartInput.addEventListener('change', () => {
+      if (!cdRunning) {
+        cdStartSec = Math.max(1, parseInt(cdStartInput.value, 10) || 60);
+        cdRemMs    = cdStartSec * 1000;
+        cdRender(cdRemMs);
+      }
+    });
+
+    cdRender(cdRemMs);
+
+    // ── Stopwatch ─────────────────────────────────────────────────
+    const swDisplay  = document.getElementById('swDisplay');
+    const swLapsEl   = document.getElementById('swLaps');
+    const swBtnStart = document.getElementById('swBtnStart');
+    const swBtnReset = document.getElementById('swBtnReset');
+    const swBtnLap   = document.getElementById('swBtnLap');
+
+    let swTimer     = null;
+    let swRunning   = false;
+    let swElapsed   = 0;
+    let swStartTime = null;
+    let swLapTimes  = [];
+
+    function swFmt(ms) {
+      const m  = Math.floor(ms / 60000);
+      const s  = Math.floor((ms % 60000) / 1000);
+      const cs = Math.floor((ms % 1000) / 10);
+      return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(cs).padStart(2,'0')}`;
+    }
+
+    function swNow() { return swElapsed + (swRunning ? Date.now() - swStartTime : 0); }
+
+    swBtnStart.addEventListener('click', () => {
+      if (swRunning) {
+        swElapsed += Date.now() - swStartTime;
+        clearInterval(swTimer); swTimer = null;
+        swRunning = false;
+        swBtnStart.textContent = '▶';
+      } else {
+        swStartTime = Date.now();
+        swTimer     = setInterval(() => { swDisplay.textContent = swFmt(swNow()); }, 37);
+        swRunning   = true;
+        swBtnStart.textContent = '⏸';
+      }
+    });
+
+    swBtnReset.addEventListener('click', () => {
+      clearInterval(swTimer); swTimer = null;
+      swRunning = false; swElapsed = 0; swStartTime = null; swLapTimes = [];
+      swBtnStart.textContent = '▶';
+      swDisplay.textContent  = '00:00.00';
+      swLapsEl.innerHTML     = '';
+    });
+
+    swBtnLap.addEventListener('click', () => {
+      if (!swRunning && swElapsed === 0) return;
+      const total = swNow();
+      swLapTimes.push(total);
+      const n     = swLapTimes.length;
+      const delta = total - (n > 1 ? swLapTimes[n - 2] : 0);
+      const item  = document.createElement('div');
+      item.className = 'lap-item';
+      item.innerHTML =
+        `<span class="lap-num">Lap ${n}</span>` +
+        `<span class="lap-time">${swFmt(total)}</span>` +
+        `<span class="lap-delta">+${swFmt(delta)}</span>`;
+      swLapsEl.prepend(item);
+    });
+  </script>
+</body>
+</html>
