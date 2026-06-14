@@ -6,17 +6,59 @@
   <title>Modern Counter</title>
   <style>
     :root {
-      --primary:      #6c63ff;
-      --secondary:    #ff6584;
-      --bg-start:     #0f0c29;
-      --bg-mid:       #302b63;
-      --bg-end:       #24243e;
-      --glass-bg:     rgba(255, 255, 255, 0.08);
-      --glass-border: rgba(255, 255, 255, 0.18);
-      --text:         #ffffff;
-      --text-muted:   rgba(255, 255, 255, 0.55);
-      --radius:       20px;
-      --transition:   0.2s ease;
+      --primary:          #6c63ff;
+      --secondary:        #ff6584;
+      --bg-start:         #0f0c29;
+      --bg-mid:           #302b63;
+      --bg-end:           #24243e;
+      --glass-bg:         rgba(255, 255, 255, 0.08);
+      --glass-border:     rgba(255, 255, 255, 0.18);
+      --text:             #ffffff;
+      --text-muted:       rgba(255, 255, 255, 0.55);
+      --radius:           20px;
+      --transition:       0.2s ease;
+      --tab-bar-bg:       rgba(255,255,255,0.05);
+      --tab-hover-bg:     rgba(255,255,255,0.08);
+      --tab-hover-color:  rgba(255,255,255,0.8);
+      --ring-track:       rgba(255,255,255,0.08);
+      --input-bg:         rgba(255,255,255,0.08);
+      --select-opt-bg:    #302b63;
+      --neutral-bg:       rgba(255,255,255,0.06);
+      --neutral-border:   rgba(255,255,255,0.15);
+      --pill-bg:          rgba(255,255,255,0.07);
+      --pill-border:      rgba(255,255,255,0.12);
+      --lap-bg:           rgba(255,255,255,0.05);
+      --lap-border:       rgba(255,255,255,0.08);
+      --card-shadow:      rgba(0,0,0,0.45);
+      --scrollbar-color:  rgba(255,255,255,0.15);
+      --display-start:    #ffffff;
+      --blob-opacity:     0.35;
+    }
+
+    [data-theme="light"] {
+      --bg-start:         #e8e4ff;
+      --bg-mid:           #f0eeff;
+      --bg-end:           #f5f3ff;
+      --glass-bg:         rgba(255, 255, 255, 0.65);
+      --glass-border:     rgba(108, 99, 255, 0.2);
+      --text:             #1a1729;
+      --text-muted:       rgba(26, 23, 41, 0.55);
+      --tab-bar-bg:       rgba(108,99,255,0.07);
+      --tab-hover-bg:     rgba(108,99,255,0.1);
+      --tab-hover-color:  rgba(26,23,41,0.7);
+      --ring-track:       rgba(108,99,255,0.12);
+      --input-bg:         rgba(255,255,255,0.75);
+      --select-opt-bg:    #e8e4ff;
+      --neutral-bg:       rgba(108,99,255,0.07);
+      --neutral-border:   rgba(108,99,255,0.2);
+      --pill-bg:          rgba(108,99,255,0.07);
+      --pill-border:      rgba(108,99,255,0.15);
+      --lap-bg:           rgba(108,99,255,0.05);
+      --lap-border:       rgba(108,99,255,0.1);
+      --card-shadow:      rgba(108,99,255,0.18);
+      --scrollbar-color:  rgba(108,99,255,0.2);
+      --display-start:    #1a1729;
+      --blob-opacity:     0.15;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,7 +80,7 @@
       position: fixed;
       border-radius: 50%;
       filter: blur(80px);
-      opacity: 0.35;
+      opacity: var(--blob-opacity);
       pointer-events: none;
     }
     body::before { width: 420px; height: 420px; background: var(--primary);   top: -120px;  left: -120px; }
@@ -54,14 +96,14 @@
       padding: 32px 48px 40px;
       text-align: center;
       width: min(400px, 92vw);
-      box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+      box-shadow: 0 24px 64px var(--card-shadow);
     }
 
     /* ── Tab bar ── */
     .tab-bar {
       display: flex;
       gap: 4px;
-      background: rgba(255,255,255,0.05);
+      background: var(--tab-bar-bg);
       border-radius: 12px;
       padding: 4px;
       margin-bottom: 28px;
@@ -81,7 +123,7 @@
       transition: background var(--transition), color var(--transition);
     }
     .tab.active            { background: rgba(108,99,255,0.35); color: #fff; }
-    .tab:hover:not(.active){ background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+    .tab:hover:not(.active){ background: var(--tab-hover-bg); color: var(--tab-hover-color); }
 
     .tab-panel         { display: none; }
     .tab-panel.active  { display: block; }
@@ -101,7 +143,7 @@
       font-weight: 800;
       line-height: 1;
       letter-spacing: -0.03em;
-      background: linear-gradient(135deg, #fff 30%, var(--primary));
+      background: linear-gradient(135deg, var(--display-start) 30%, var(--primary));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -124,7 +166,7 @@
     .ring-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
     .ring { width: 200px; height: 200px; position: relative; display: flex; align-items: center; justify-content: center; }
     .ring svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
-    .ring__track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 6; }
+    .ring__track { fill: none; stroke: var(--ring-track); stroke-width: 6; }
     .ring__fill  {
       fill: none;
       stroke: url(#ringGrad);
@@ -172,21 +214,21 @@
       width: 48px; height: 48px;
       font-size: 1rem;
       align-self: center;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.15);
+      background: var(--neutral-bg);
+      border: 1px solid var(--neutral-border);
       color: var(--text-muted);
       box-shadow: none;
     }
-    .btn--neutral:hover { background: rgba(255,255,255,0.14); color: #fff; transform: rotate(90deg); }
+    .btn--neutral:hover { background: var(--tab-hover-bg); color: var(--text); transform: rotate(90deg); }
 
     /* ── Step selector ── */
     .step-wrap { margin-top: 28px; display: flex; align-items: center; justify-content: center; gap: 10px; }
     .step-wrap label { font-size: 0.78rem; color: var(--text-muted); letter-spacing: 0.08em; }
     .step-select {
-      background: rgba(255,255,255,0.08);
+      background: var(--input-bg);
       border: 1px solid var(--glass-border);
       border-radius: 8px;
-      color: #fff;
+      color: var(--text);
       font-size: 0.85rem;
       padding: 5px 10px;
       cursor: pointer;
@@ -194,7 +236,7 @@
       appearance: none;
       -webkit-appearance: none;
     }
-    .step-select option { background: #302b63; }
+    .step-select option { background: var(--select-opt-bg); }
 
     /* ── History pills ── */
     .history { margin-top: 20px; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; min-height: 26px; }
@@ -202,8 +244,8 @@
       font-size: 0.7rem;
       padding: 3px 10px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--pill-bg);
+      border: 1px solid var(--pill-border);
       color: var(--text-muted);
       animation: fadeIn 0.2s ease;
     }
@@ -213,10 +255,10 @@
     .cd-input-wrap label { font-size: 0.78rem; color: var(--text-muted); letter-spacing: 0.08em; }
     .cd-input {
       width: 76px;
-      background: rgba(255,255,255,0.08);
+      background: var(--input-bg);
       border: 1px solid var(--glass-border);
       border-radius: 8px;
-      color: #fff;
+      color: var(--text);
       font-size: 0.95rem;
       padding: 6px 10px;
       text-align: center;
@@ -243,7 +285,7 @@
       font-size: clamp(2.6rem, 11vw, 3.6rem);
       font-weight: 800;
       letter-spacing: 0.04em;
-      background: linear-gradient(135deg, #fff 30%, var(--primary));
+      background: linear-gradient(135deg, var(--display-start) 30%, var(--primary));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -260,7 +302,7 @@
       flex-direction: column;
       gap: 5px;
       scrollbar-width: thin;
-      scrollbar-color: rgba(255,255,255,0.15) transparent;
+      scrollbar-color: var(--scrollbar-color) transparent;
     }
     .lap-item {
       display: flex;
@@ -269,8 +311,8 @@
       font-size: 0.76rem;
       padding: 5px 12px;
       border-radius: 8px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: var(--lap-bg);
+      border: 1px solid var(--lap-border);
       color: var(--text-muted);
       animation: fadeIn 0.2s ease;
       font-variant-numeric: tabular-nums;
@@ -279,10 +321,34 @@
     .lap-delta { font-size: 0.68rem; opacity: 0.7; }
 
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+
+    /* ── Theme toggle ── */
+    .btn-theme {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--glass-border);
+      background: var(--neutral-bg);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition), transform var(--transition), border-color var(--transition);
+      outline: none;
+      line-height: 1;
+    }
+    .btn-theme:hover { background: var(--tab-hover-bg); transform: rotate(20deg); }
   </style>
 </head>
 <body>
   <div class="card">
+
+    <button class="btn-theme" id="themeToggle" title="Toggle light / dark mode">☀</button>
 
     <div class="tab-bar">
       <button class="tab active" data-tab="counter">Counter</button>
@@ -378,6 +444,26 @@
   </div>
 
   <script>
+    // ── Theme toggle ──────────────────────────────────────────────
+    const themeToggle = document.getElementById('themeToggle');
+    const applyTheme = theme => {
+      if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        themeToggle.textContent = '☾';
+        themeToggle.title = 'Switch to dark mode';
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        themeToggle.textContent = '☀';
+        themeToggle.title = 'Switch to light mode';
+      }
+    };
+    applyTheme(localStorage.getItem('theme') || 'dark');
+    themeToggle.addEventListener('click', () => {
+      const next = document.documentElement.hasAttribute('data-theme') ? 'dark' : 'light';
+      localStorage.setItem('theme', next);
+      applyTheme(next);
+    });
+
     // ── Tabs ──────────────────────────────────────────────────────
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {
